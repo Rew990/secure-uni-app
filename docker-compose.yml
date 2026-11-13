@@ -1,0 +1,23 @@
+services:
+  app:
+    build: .
+    env_file: .env
+    environment:
+      DATABASE_URL: sqlite:////code/data/university.db
+    volumes:
+      - app_data:/code/data        # the SQLite file survives restarts
+    expose:
+      - "8000"                     # only Caddy can reach the app; no plain HTTP to the host
+
+  caddy:
+    image: caddy:2
+    depends_on: [app]
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./certs:/certs:ro
+
+volumes:
+  app_data:

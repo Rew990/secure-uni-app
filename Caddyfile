@@ -1,0 +1,14 @@
+# TLS termination (owner: Encryption & TLS).
+# Generate certs first:  mkcert -install && mkcert -cert-file certs/cert.pem -key-file certs/key.pem localhost 127.0.0.1
+# Caddy redirects HTTP -> HTTPS automatically for this site block.
+localhost {
+	tls /certs/cert.pem /certs/key.pem
+	encode gzip
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "no-referrer"
+	}
+	reverse_proxy app:8000
+}

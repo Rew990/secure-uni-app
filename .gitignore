@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+certs/*.pem
+anonymization/output/*.csv
+*.db
+data/
+.pytest_cache/
