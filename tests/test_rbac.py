@@ -23,28 +23,37 @@ def test_bad_token_is_401(client):
 
 
 @pytest.mark.parametrize("user,method,path,expected", [
-    ("admin",   "GET", "/students",   200),
-    ("instructor", "GET", "/students",   200),
-    ("student",  "GET", "/students",   403),
-    ("admin",   "GET", "/anonymized", 200),
-    ("instructor", "GET", "/anonymized", 200),
-    ("student",  "GET", "/anonymized", 200),
-    ("admin",   "GET", "/users",      200),
-    ("instructor", "GET", "/users",      403),
-    ("student",  "GET", "/users",      403),
-])
+    ("admin",      "GET", "/students",    200),
+    ("instructor", "GET", "/students",    200),
+    ("student",    "GET", "/students",    403),
+    ("admin",      "GET", "/students/me", 403),
+    ("instructor", "GET", "/students/me", 403),
+    ("student",    "GET", "/students/me", 200),
+    ("admin",      "GET", "/anonymized",  200),
+    ("instructor", "GET", "/anonymized",  200),
+    ("student",    "GET", "/anonymized",  403),
+    ("admin",      "GET", "/users",       200),
+    ("instructor", "GET", "/users",       403),
+    ("student",    "GET", "/users",       403),
+    ])
+
 def test_read_matrix(client, headers, user, method, path, expected):
     assert client.request(method, path, headers=headers[user]).status_code == expected
 
 
-@pytest.mark.parametrize("user,expected", [("instructor", 403), ("student", 403)])
-def test_only_admin_changes_grades(client, headers, user, expected):
+def test_student_sees_only_own_record(client, headers):
+    r = client.get("/students/me", headers=headers["student"])
+    assert r.json()["student_number"] == "S1001"
+
+
+@pytest.mark.parametrize("user", ["admin", "student"])
+def test_only_instructor_changes_grades(client, headers, user):
     r = client.patch("/students/1/gpa", json={"gpa": 4.0}, headers=headers[user])
-    assert r.status_code == expected
+    assert r.status_code == 403
 
 
-def test_admin_changes_grade(client, headers):
-    r = client.patch("/students/1/gpa", json={"gpa": 3.7}, headers=headers["admin"])
+def test_instructor_changes_grade(client, headers):
+    r = client.patch("/students/1/gpa", json={"gpa": 3.7}, headers=headers["instructor"])
     assert r.status_code == 200 and r.json()["gpa"] == 3.7
 
 
@@ -55,4 +64,14 @@ def test_create_student(client, headers, user, expected):
 
 
 def test_me_returns_role(client, headers):
-    assert client.get("/auth/me", headers=headers["viewer"]).json()["role"] == "viewer"
+    assert client.get("/auth/me", headers=headers["student"]).json()["role"] == "student"
+
+
+
+
+
+
+
+
+
+

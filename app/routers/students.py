@@ -16,8 +16,9 @@ from app.security.rbac import get_db, require_role, get_current_user
 
 router = APIRouter(prefix="/students", tags=["students"])
 
-read_roles = require_role(Role.ADMIN, Role.INSTRUCTOR)
-write_roles = require_role(Role.ADMIN)
+read_roles = require_role(Role.ADMIN, Role.INSTRUCTOR)   # see every student
+grade_roles = require_role(Role.INSTRUCTOR)              # change a GPA
+create_roles = require_role(Role.ADMIN)                  # add a student
 
 
 @router.get("", response_model=list[StudentOut], dependencies=[Depends(read_roles)])
@@ -40,7 +41,7 @@ def get_student(student_id: int, db: Session = Depends(get_db)) -> Student:
 
 
 @router.post("", response_model=StudentOut, status_code=status.HTTP_201_CREATED,
-             dependencies=[Depends(write_roles)])
+             dependencies=[Depends(create_roles)])
 def create_student(body: StudentCreate, db: Session = Depends(get_db)) -> Student:
     data = body.model_dump(exclude={"national_id"})
     student = Student(**data)
@@ -55,7 +56,7 @@ def create_student(body: StudentCreate, db: Session = Depends(get_db)) -> Studen
     return student
 
 
-@router.patch("/{student_id}/gpa", response_model=StudentOut, dependencies=[Depends(write_roles)])
+@router.patch("/{student_id}/gpa", response_model=StudentOut, dependencies=[Depends(grade_roles)])
 def update_gpa(student_id: int, body: GradeUpdate, db: Session = Depends(get_db)) -> Student:
     student = db.get(Student, student_id)
     if student is None:

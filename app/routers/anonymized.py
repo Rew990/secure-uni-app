@@ -12,7 +12,7 @@ router = APIRouter(prefix="/anonymized", tags=["anonymized"])
 
 
 @router.get("", response_model=list[AnonymizedOut],
-            dependencies=[Depends(require_role(Role.ADMIN, Role.INSTRUCTOR, Role.STUDENT))])
+            dependencies=[Depends(require_role(Role.ADMIN, Role.INSTRUCTOR))])
 def list_anonymized(db: Session = Depends(get_db)) -> list[AnonymizedRecord]:
     return list(db.scalars(select(AnonymizedRecord).order_by(AnonymizedRecord.id)))
 
