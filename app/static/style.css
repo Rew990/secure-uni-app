@@ -1,0 +1,35 @@
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, sans-serif; background: #f4f6f8; color: #1d2329; }
+header { display: flex; justify-content: space-between; align-items: center;
+         padding: 12px 24px; background: #1f3a5f; color: #fff; }
+header h1 { font-size: 18px; margin: 0; }
+#who { display: flex; gap: 12px; align-items: center; }
+main { max-width: 1000px; margin: 24px auto; padding: 0 16px; }
+.card { background: #fff; border-radius: 8px; padding: 16px 20px; margin-bottom: 16px;
+        box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.narrow { max-width: 380px; margin: 60px auto; }
+h2 { font-size: 16px; margin: 0 0 12px; }
+label { display: block; font-size: 13px; margin-bottom: 10px; }
+input, select { display: block; width: 100%; padding: 7px 9px; margin-top: 4px;
+                border: 1px solid #c8ced4; border-radius: 5px; font: inherit; }
+button { padding: 7px 14px; border: 0; border-radius: 5px; background: #2f6fb2;
+         color: #fff; font: inherit; cursor: pointer; }
+button.secondary { background: #fff; color: #1f3a5f; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0 12px; align-items: end; }
+.grid button { margin-bottom: 10px; }
+.inline { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+.inline input, .inline select { width: auto; margin: 0; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #e6e9ec; }
+th { background: #f0f3f6; }
+td input { width: 80px; display: inline-block; margin: 0 6px 0 0; }
+.record { display: grid; grid-template-columns: 160px 1fr; gap: 6px; margin: 0; }
+.record dt { color: #5b6670; }
+.error { color: #b3261e; min-height: 1em; }
+.message { padding: 10px 14px; border-radius: 6px; background: #e7f1fb; }
+.message.bad { background: #fbebeb; color: #b3261e; }
+.hint { color: #5b6670; font-size: 13px; margin-top: -6px; }
+.empty { color: #5b6670; font-style: italic; }
+
+/* Make "hidden" always win over display rules above. */
+[hidden] { display: none !important; }

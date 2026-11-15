@@ -8,6 +8,9 @@ from app.database import get_engine
 from app.models import Base
 from app.routers import anonymized, auth, students, users, materials
 
+from pathlib import Path
+from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
@@ -35,3 +38,11 @@ app.include_router(materials.router)
 @app.get("/health", tags=["meta"])
 def health() -> dict:
     return {"status": "ok"}
+
+# Simple UI: the files in app/static are served at /ui, and / sends you there.
+app.mount("/ui", StaticFiles(directory=Path(__file__).parent / "static", html=True), name="ui")
+
+
+@app.get("/", include_in_schema=False)
+def home() -> RedirectResponse:
+    return RedirectResponse("/ui/")

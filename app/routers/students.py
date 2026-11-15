@@ -45,6 +45,8 @@ def get_student(student_id: int, db: Session = Depends(get_db)) -> Student:
 def create_student(body: StudentCreate, db: Session = Depends(get_db)) -> Student:
     data = body.model_dump(exclude={"national_id"})
     student = Student(**data)
+    if db.scalar(select(Student).where(Student.student_number == body.student_number)):
+        raise HTTPException(status.HTTP_409_CONFLICT, "Student number already exists")
     if body.national_id:
         try:
             student.national_id_enc = crypto.encrypt_field(body.national_id)
