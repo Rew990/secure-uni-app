@@ -233,8 +233,9 @@ async function loadAnonymized() {
 
 async function loadUsers() {
   const rows = await api("/users");
-  fillTable($("users-table"), [["id", "ID"], ["username", "Username"], ["role", "Role"],
-    ["mfa_enabled", "MFA on"]], rows.map((u) => ({ ...u, mfa_enabled: u.mfa_enabled ? "yes" : "no" })));
+    fillTable($("users-table"), [["id", "ID"], ["username", "Username"], ["role", "Role"],
+    ["student_id", "Student ID"], ["mfa_enabled", "MFA on"]], rows.map((u) => ({ ...u, mfa_enabled: u.mfa_enabled ? "yes" : "no" })));
+    
 }
 
 $("user-form").addEventListener("submit", async (e) => {
@@ -242,8 +243,24 @@ $("user-form").addEventListener("submit", async (e) => {
   const f = e.target;
   try {
     await api("/users", { method: "POST",
-      json: { username: f.username.value, password: f.password.value, role: f.role.value } });
+      json: { username: f.username.value, password: f.password.value, role: f.role.value,
+              student_number: f.student_number.value || null } });
     showMessage("User " + f.username.value + " created.");
+    f.reset();
+    await loadUsers();
+  } catch (err) { showMessage(err.message, true); }
+});
+// Edit a user: send only the fields that were filled in (PATCH /users/{id}).
+$("user-edit-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const f = e.target;
+  const changes = {};
+  if (f.password.value) changes.password = f.password.value;
+  if (f.role.value) changes.role = f.role.value;
+  if (f.student_number.value) changes.student_number = f.student_number.value;
+  try {
+    await api("/users/" + f.id.value, { method: "PATCH", json: changes });
+    showMessage("User " + f.id.value + " updated.");
     f.reset();
     await loadUsers();
   } catch (err) { showMessage(err.message, true); }
