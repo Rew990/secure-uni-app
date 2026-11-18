@@ -18,14 +18,21 @@ class UserCreate(BaseModel):
     username: str = Field(min_length=3, max_length=64)
     password: str = Field(min_length=8)
     role: Role
+    student_number: str | None = None
 
+class UserUpdate(BaseModel):
+    """Every field is optional: the admin sends only what should change."""
+    username: str | None = Field(default=None, min_length=3, max_length=64)
+    password: str | None = Field(default=None, min_length=8)  # password reset
+    role: Role | None = None
+    student_number: str | None = None
 
 class UserOut(BaseModel):
     id: int
     username: str
     role: Role
     mfa_enabled: bool
-
+    student_id: int | None
     model_config = {"from_attributes": True}
 
 

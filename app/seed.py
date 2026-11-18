@@ -40,7 +40,33 @@ DEMO_STUDENTS = [
     dict(student_number="S1025", full_name="Hamada Hamada", birth_year=2004, gender="M", zip_code="11580", department="CN", gpa=3.1),
 ]
 
-
+STUDENT_LOGINS = {
+    "S1001": ("ahmed.hassan", "xnJnjpmq@1001"),
+    "S1002": ("sara.omar", "9HX5TQm8@1002"),
+    "S1003": ("rawan.adam", "4g7k2Lqv@1003"),
+    "S1004": ("khalid.ali", "2J8vN3pQ@1004"),
+    "S1005": ("yousef.mohammed", "5k9L2mQw@1005"),
+    "S1006": ("shaza.hany", "7H3kL9pQ@1006"),
+    "S1007": ("karim.saad", "3J8vN2pQ@1007"),
+    "S1008": ("mohammed.khalil", "6k9L3mQw@1008"),
+    "S1009": ("mariam.adel", "8H3kL1pQ@1009"),
+    "S1010": ("nour.khaled", "1J8vN4pQ@1010"),
+    "S1011": ("mostafa.salah", "4k9L5mQw@1011"),
+    "S1012": ("laila.ashraf", "7H3kL2pQ@1012"),
+    "S1013": ("jana.hossam", "2J8vN5pQ@1013"),
+    "S1014": ("ziad.ashraf", "5k9L6mQw@1014"),
+    "S1015": ("amr.nabil", "8H3kL3pQ@1015"),
+    "S1016": ("farah.nabil", "1J8vN6pQ@1016"),
+    "S1017": ("salma.reda", "4k9L7mQw@1017"),
+    "S1018": ("hassan.omer", "7H3kL4pQ@1018"),
+    "S1019": ("tamer.magdy", "2J8vN7pQ@1019"),
+    "S1020": ("yara.sameh", "5k9L8mQw@1020"),
+    "S1021": ("dina.essam", "8H3kL5pQ@1021"),
+    "S1022": ("malak.fathy", "1J8vN8pQ@1022"),
+    "S1023": ("ahmed.samir", "4k9L9mQw@1023"),
+    "S1024": ("remas.adel", "7H3kL6pQ@1024"),
+    "S1025": ("hamada.hamada", "2J8vN9pQ@1025"),
+    }
 def seed() -> None:
     db = new_session()
     try:
@@ -49,6 +75,7 @@ def seed() -> None:
                 db.add(Student(**s))
         db.commit()  # students need ids before a user can point to one
 
+        # loop 1: admin, instructor, student (unchanged)
         for username, password, role, student_number in DEMO_USERS:
             if db.scalar(select(User).where(User.username == username)):
                 continue
@@ -57,6 +84,15 @@ def seed() -> None:
                 student = db.scalar(select(Student).where(Student.student_number == student_number))
             db.add(User(username=username, password_hash=hash_password(password), role=role,
                         student_id=student.id if student else None))
+
+        # loop 2 (new): one login per student
+        for number, (username, password) in STUDENT_LOGINS.items():
+            if db.scalar(select(User).where(User.username == username)):
+                continue
+            student = db.scalar(select(Student).where(Student.student_number == number))
+            db.add(User(username=username, password_hash=hash_password(password),
+                        role=Role.STUDENT, student_id=student.id))
+
         db.commit()
     finally:
         db.close()
