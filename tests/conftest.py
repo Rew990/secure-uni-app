@@ -9,6 +9,7 @@ os.environ["JWT_SECRET"] = "test-secret-test-secret-test-secret-1234"
 
 from fastapi.testclient import TestClient  # noqa: E402
 
+from app.database import get_engine  # noqa: E402
 from app.main import app  # noqa: E402
 
 PASSWORDS = {"admin": "Admin@12345", "instructor": "Instructor@12345", "student": "Student@12345"}
@@ -20,6 +21,7 @@ def client():
         os.remove("test.db")
     with TestClient(app) as c:
         yield c
+    get_engine().dispose()   # close SQLite's connections first, or Windows can't delete the file
     os.remove("test.db")
 
 
