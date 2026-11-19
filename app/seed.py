@@ -38,6 +38,7 @@ DEMO_STUDENTS = [
     dict(student_number="S1023", full_name="Ahmed Samir", birth_year=2003, gender="M", zip_code="11622", department="CS", gpa=2.6),
     dict(student_number="S1024", full_name="Remas Adel", birth_year=2002, gender="F", zip_code="11992", department="AI", gpa=2.2),
     dict(student_number="S1025", full_name="Hamada Hamada", birth_year=2004, gender="M", zip_code="11580", department="CN", gpa=3.1),
+    
 ]
 
 
