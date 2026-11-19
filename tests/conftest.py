@@ -6,6 +6,7 @@ import pytest
 os.environ["DATABASE_URL"] = "sqlite:///./test.db"
 os.environ["SEED_DEMO_USERS"] = "true"
 os.environ["JWT_SECRET"] = "test-secret-test-secret-test-secret-1234"
+os.environ["FIELD_ENCRYPTION_KEY"] = "dGVzdC1rZXktdGVzdC1rZXktdGVzdC1rZXktMTIzNDU="
 
 from fastapi.testclient import TestClient  # noqa: E402
 
