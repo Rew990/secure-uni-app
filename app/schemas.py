@@ -13,6 +13,11 @@ class LoginRequest(BaseModel):
     password: str
     totp_code: str | None = Field(default=None, description="6-digit code, once MFA is enabled")
 
+class PasswordReset(BaseModel):
+    """Forgot password: the authenticator code proves who you are, instead of an email."""
+    username: str
+    totp_code: str = Field(min_length=6, max_length=6)
+    new_password: str = Field(min_length=8)
 
 class UserCreate(BaseModel):
     username: str = Field(min_length=3, max_length=64)

@@ -12,6 +12,7 @@ from fastapi.testclient import TestClient  # noqa: E402
 
 from app.database import get_engine  # noqa: E402
 from app.main import app  # noqa: E402
+from app.limiter import limiter
 
 PASSWORDS = {"admin": "Admin@12345", "instructor": "Instructor@12345", "student": "Student@12345"}
 
@@ -34,3 +35,8 @@ def headers(client):
         assert r.status_code == 200, r.text
         out[user] = {"Authorization": f"Bearer {r.json()['access_token']}"}
     return out
+
+@pytest.fixture(autouse=True)
+def reset_rate_limit():
+    """Every test starts with a fresh 5-per-minute allowance (all tests share one IP)."""
+    limiter.reset()

@@ -7,10 +7,10 @@ from sqlalchemy.orm import Session
 from app.database import get_session
 from app.limiter import limiter
 from app.models import User
-from app.schemas import LoginRequest, Token, UserOut
+from app.schemas import LoginRequest, Token, UserOut, PasswordReset
 from app.security import mfa
 from app.security.crypto import decrypt_field, encrypt_field
-from app.security.passwords import verify_password
+from app.security.passwords import hash_password, verify_password
 from app.security.rbac import get_current_user
 from app.security.tokens import create_access_token
 
@@ -75,3 +75,15 @@ def mfa_verify(
     user.mfa_enabled = True
     db.commit()
     return {"mfa_enabled": True}
+
+@router.post("/reset-password", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit("5/minute")
+def reset_password(request: Request, body: PasswordReset, db: Session = Depends(get_session)) -> None:
+    failed = HTTPException(status.HTTP_401_UNAUTHORIZED, "Password reset failed")
+    user = db.scalar(select(User).where(User.username == body.username))
+    if user is None or not user.mfa_enabled or not user.mfa_secret_enc:
+        raise failed
+    if not mfa.verify_totp(decrypt_field(user.mfa_secret_enc), body.totp_code):
+        raise failed
+    user.password_hash = hash_password(body.new_password)
+    db.commit()
