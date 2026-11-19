@@ -30,6 +30,7 @@ td input { width: 80px; display: inline-block; margin: 0 6px 0 0; }
 .message.bad { background: #fbebeb; color: #b3261e; }
 .hint { color: #5b6670; font-size: 13px; margin-top: -6px; }
 .empty { color: #5b6670; font-style: italic; }
-
+button.link { background: none; color: #2f6fb2; padding: 4px 0; text-decoration: underline; }
+#mfa-qr { display: block; margin: 8px 0; border: 1px solid #e6e9ec; }
 /* Make "hidden" always win over display rules above. */
 [hidden] { display: none !important; }

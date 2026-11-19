@@ -87,6 +87,28 @@ $("login-form").addEventListener("submit", async (e) => {
     $("login-error").textContent = err.message;
   }
 });
+// ---------- Forgot password (POST /auth/reset-password) ----------
+
+function showReset(show) {
+  $("login-form").hidden = show;
+  $("forgot-link").hidden = show;
+  $("reset-form").hidden = !show;
+  $("reset-error").textContent = "";
+}
+$("forgot-link").addEventListener("click", () => showReset(true));
+$("reset-cancel").addEventListener("click", () => showReset(false));
+
+$("reset-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const f = e.target;
+  try {
+    await api("/auth/reset-password", { method: "POST", json: {
+      username: f.username.value, totp_code: f.totp_code.value, new_password: f.new_password.value } });
+    f.reset();
+    showReset(false);
+    $("login-error").textContent = "Password changed. Log in with your new password.";
+  } catch (err) { $("reset-error").textContent = err.message; }
+});
 
 $("logout").addEventListener("click", () => {
   token = null;
@@ -111,7 +133,7 @@ async function startDashboard() {
   for (const el of document.querySelectorAll("#app-view [data-roles]")) {
     el.hidden = !el.dataset.roles.split(" ").includes(me.role);
   }
-
+  showMfaStatus();
   const loaders = {
     student: [loadMyRecord, loadMaterials],
     instructor: [loadStudents, loadMaterials, loadAnonymized],
@@ -121,6 +143,35 @@ async function startDashboard() {
     try { await load(); } catch (err) { showMessage(err.message, true); }
   }
 }
+// ---------- MFA setup (POST /auth/mfa/setup, then /auth/mfa/verify) ----------
+
+function showMfaStatus() {
+  $("mfa-status").textContent = me.mfa_enabled
+    ? "MFA is on. You'll be asked for a code from your phone every time you log in."
+    : "MFA is off. Turn it on so a stolen password alone can't open your account.";
+  $("mfa-start").hidden = me.mfa_enabled;
+  $("mfa-setup").hidden = true;
+}
+
+$("mfa-start").addEventListener("click", async () => {
+  try {
+    const data = await api("/auth/mfa/setup", { method: "POST" });
+    // The QR code comes from our own server; it's shown as an image, never as HTML.
+    $("mfa-secret").textContent = new URL(data.provisioning_uri).searchParams.get("secret");    $("mfa-setup").hidden = false;
+    $("mfa-start").hidden = true;
+  } catch (err) { showMessage(err.message, true); }
+});
+
+$("mfa-verify-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  try {
+    await api("/auth/mfa/verify", { method: "POST", json: { code: e.target.code.value } });
+    e.target.reset();
+    me = await api("/auth/me");
+    showMfaStatus();
+    showMessage("MFA is on. Next time you log in, enter the code from your phone.");
+  } catch (err) { showMessage(err.message, true); }
+});
 
 async function loadMyRecord() {
   const dl = $("my-record");
