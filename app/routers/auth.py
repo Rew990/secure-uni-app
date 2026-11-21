@@ -1,5 +1,8 @@
-"""Login (owner: Authentication & MFA; token issuing shared with RBAC)."""
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+﻿"""Login (owner: Authentication & MFA; token issuing shared with RBAC)."""
+import io
+
+import qrcode
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -43,11 +46,8 @@ def me(user: User = Depends(get_current_user)) -> User:
     return user
 
 
-@router.post("/mfa/setup")
-def mfa_setup(
-    current: User = Depends(get_current_user),
-    db: Session = Depends(get_session),
-) -> dict:
+def _start_mfa_setup(current: User, db: Session) -> str:
+    """Make a new secret, store it encrypted, keep MFA off, return the otpauth:// link."""
     user = db.get(User, current.id)
     if user.mfa_enabled:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "MFA is already enabled")
@@ -55,7 +55,31 @@ def mfa_setup(
     user.mfa_secret_enc = encrypt_field(secret)
     user.mfa_enabled = False
     db.commit()
-    return {"provisioning_uri": mfa.provisioning_uri(secret, user.username)}
+    return mfa.provisioning_uri(secret, user.username)
+
+
+@router.post("/mfa/setup")
+def mfa_setup(
+    current: User = Depends(get_current_user),
+    db: Session = Depends(get_session),
+) -> dict:
+    return {"provisioning_uri": _start_mfa_setup(current, db)}
+
+
+@router.post(
+    "/mfa/setup/qr",
+    response_class=Response,
+    responses={200: {"content": {"image/png": {}}, "description": "QR code to scan"}},
+)
+def mfa_setup_qr(
+    current: User = Depends(get_current_user),
+    db: Session = Depends(get_session),
+) -> Response:
+    uri = _start_mfa_setup(current, db)
+    img = qrcode.make(uri)
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    return Response(buf.getvalue(), media_type="image/png")
 
 
 @router.post("/mfa/verify")
@@ -75,6 +99,7 @@ def mfa_verify(
     user.mfa_enabled = True
     db.commit()
     return {"mfa_enabled": True}
+
 
 @router.post("/reset-password", status_code=status.HTTP_204_NO_CONTENT)
 @limiter.limit("5/minute")
