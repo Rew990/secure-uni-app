@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -52,7 +52,7 @@
         <p id="mfa-status" class="hint"></p>
         <button type="button" id="mfa-start">Turn on MFA</button>
         <div id="mfa-setup" hidden>
-          <p>1. Open Microsoft Authenticator, tap <b>+</b> &rarr; <b>Other account</b>, and scan this QR code.</p>
+          <p>1. Open Microsoft Authenticator, tap <b>+</b> &rarr; <b>Other account</b>, and scan this QR code.</p><canvas id="mfa-qr" width="250" height="250" aria-label="QR code for Microsoft Authenticator"></canvas>
           <p class="hint">Can't scan? Choose "Enter code manually" and type: <code id="mfa-secret"></code></p>
           <form id="mfa-verify-form" class="inline">
             <input name="code" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" placeholder="2. Code from the app" required>
@@ -133,6 +133,6 @@
     </section>
   </main>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=2"></script>
 </body>
 </html>

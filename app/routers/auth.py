@@ -1,4 +1,5 @@
 ﻿"""Login (owner: Authentication & MFA; token issuing shared with RBAC)."""
+import base64
 import io
 
 import qrcode
@@ -58,12 +59,32 @@ def _start_mfa_setup(current: User, db: Session) -> str:
     return mfa.provisioning_uri(secret, user.username)
 
 
+def _qr_png(uri: str) -> bytes:
+    """Draw the otpauth:// link as a QR code PNG (used by /docs)."""
+    buf = io.BytesIO()
+    qrcode.make(uri).save(buf, format="PNG")
+    return buf.getvalue()
+
+
+def _qr_matrix(uri: str) -> list[list[int]]:
+    """The same QR code as a grid of 0/1, so the UI can draw it on a canvas."""
+    qr = qrcode.QRCode(border=2)
+    qr.add_data(uri)
+    qr.make(fit=True)
+    return [[int(cell) for cell in row] for row in qr.get_matrix()]
+
+
 @router.post("/mfa/setup")
 def mfa_setup(
     current: User = Depends(get_current_user),
     db: Session = Depends(get_session),
 ) -> dict:
-    return {"provisioning_uri": _start_mfa_setup(current, db)}
+    uri = _start_mfa_setup(current, db)
+    return {
+        "provisioning_uri": uri,
+        "qr_png": "data:image/png;base64," + base64.b64encode(_qr_png(uri)).decode(),
+        "qr_matrix": _qr_matrix(uri),
+    }
 
 
 @router.post(
@@ -75,11 +96,7 @@ def mfa_setup_qr(
     current: User = Depends(get_current_user),
     db: Session = Depends(get_session),
 ) -> Response:
-    uri = _start_mfa_setup(current, db)
-    img = qrcode.make(uri)
-    buf = io.BytesIO()
-    img.save(buf, format="PNG")
-    return Response(buf.getvalue(), media_type="image/png")
+    return Response(_qr_png(_start_mfa_setup(current, db)), media_type="image/png")
 
 
 @router.post("/mfa/verify")

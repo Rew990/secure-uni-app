@@ -1,4 +1,4 @@
-// Simple UI for the API. Every button calls the same routes you test in /docs.
+﻿// Simple UI for the API. Every button calls the same routes you test in /docs.
 // The server still checks every request with require_role(); hiding a card here
 // is only for convenience, never for security.
 
@@ -157,7 +157,7 @@ $("mfa-start").addEventListener("click", async () => {
   try {
     const data = await api("/auth/mfa/setup", { method: "POST" });
     // The QR code comes from our own server; it's shown as an image, never as HTML.
-    $("mfa-secret").textContent = new URL(data.provisioning_uri).searchParams.get("secret");    $("mfa-setup").hidden = false;
+    $("mfa-secret").textContent = new URL(data.provisioning_uri).searchParams.get("secret"); drawQr(data.qr_matrix);    $("mfa-setup").hidden = false;
     $("mfa-start").hidden = true;
   } catch (err) { showMessage(err.message, true); }
 });
@@ -316,3 +316,16 @@ $("user-edit-form").addEventListener("submit", async (e) => {
     await loadUsers();
   } catch (err) { showMessage(err.message, true); }
 });
+
+// Draw the QR grid (0/1 from the server) as black squares on the canvas.
+function drawQr(matrix) {
+  const canvas = document.getElementById("mfa-qr");
+  const ctx = canvas.getContext("2d");
+  const size = Math.floor(canvas.width / matrix.length);
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "#000";
+  matrix.forEach((row, y) => row.forEach((on, x) => {
+    if (on) ctx.fillRect(x * size, y * size, size, size);
+  }));
+}
